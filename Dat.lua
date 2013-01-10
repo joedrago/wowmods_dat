@@ -84,16 +84,20 @@ function Dat_Command(msg)
         end
     end
 
-    datHorizontalLine();
-
     if gOptions['help'] or gOptions['h'] then
-        datLog("Syntax: /dat ["..c("goal ilevel",64,255,64).."] || verbose || help")
-        datLog("Examples:")
-        datLog("/dat 470")
-        datLog("/dat verbose 480")
-        datLog("/dat help")
+        print("Syntax: /dat ["..c("goal ilevel",64,255,64).."] || verbose || party || guild || help")
+        print("Examples:")
+        print("/dat 470")
+        print("/dat verbose 480")
+        print("/dat help")
         return
     end
+
+    if gOptions["guild"] or gOptions["party"] then
+        gOptions["chat"] = 1
+    end
+
+    datHorizontalLine();
 
     local averageItemLevel, averageEquippedItemLevel = GetAverageItemLevel();
     if(goalItemLevel == nil) then
@@ -223,7 +227,11 @@ function datCalcSet(name, set, goalItemLevel)
         if strlen(worstItemText) > 0 then
             worstItemText = worstItemText .. ", "
         end
-        worstItemText = worstItemText .. v.link
+        if gOptions["chat"] then
+            worstItemText = worstItemText .. v.name
+        else
+            worstItemText = worstItemText .. v.link
+        end
     end
 
     datLog(name..": "
@@ -325,23 +333,37 @@ end
 -------------------------------------------------------------------------------------
 
 function datLog(msg)
-    print(ct("Dat: ", "DAT") .. msg)
+    local m = msg
+    if gOptions["chat"] then
+        m = gsub(m, "|c........", "")
+        m = gsub(m, "|r", "")
+        m = gsub(m, "|r", "")
+    end
+    if gOptions["party"] then
+        SendChatMessage("Dat: " .. m, "PARTY")
+    end
+    if gOptions["guild"] then
+        SendChatMessage("Dat: " .. m, "GUILD")
+    end
+    if not gOptions["chat"] then
+        print(ct("Dat: ", "DAT") .. msg)
+    end
 end
 
 function datVerbose(msg)
     if gOptions["verbose"] or gOptions["v"] then
-        datLog(msg)
+        print(msg) -- Errors are always local
     end
 end
 
 function datWarning(msg)
-    print(ct("Dat Warning: " .. msg, "WARN"))
+    print(ct("Warning: " .. msg, "WARN")) -- Warnings are always local
 end
 
 function datHorizontalLine()
-    print(ct("---------------------------------------------", "LINE"))
+    datLog(ct("---------------------------------------------", "LINE"))
 end
 
 function datError(msg)
-    print(ct("Dat Error: " .. msg, "ERROR"))
+    datLog(ct("Dat Error: " .. msg, "ERROR"))
 end
