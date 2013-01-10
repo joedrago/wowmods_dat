@@ -213,7 +213,11 @@ function datCalcSet(name, set, goalItemLevel)
                         tremove(worstItems)
                     end
                 end
-                datVerbose("* ".. item.ilevel .. " (" .. item.equipSlot .. ") " .. item.link)
+                if gOptions["chat"] then
+                    datVerbose("* ".. item.ilevel .. " (" .. item.equipSlot .. ") " .. item.name)
+                else
+                    datVerbose("* ".. item.ilevel .. " (" .. item.equipSlot .. ") " .. item.link)
+                end
             end
         else
             datWarning("Nothing to equip for slot " .. equipSlot)
@@ -352,7 +356,7 @@ end
 
 function datVerbose(msg)
     if gOptions["verbose"] or gOptions["v"] then
-        print(msg) -- Errors are always local
+        datLog(msg)
     end
 end
 
@@ -365,5 +369,5 @@ function datHorizontalLine()
 end
 
 function datError(msg)
-    datLog(ct("Dat Error: " .. msg, "ERROR"))
+    print(ct("Dat Error: " .. msg, "ERROR")) -- Errors are always local
 end
