@@ -1,39 +1,69 @@
-local slotNames = {"BackSlot","ChestSlot","FeetSlot","Finger0Slot","Finger1Slot","HandsSlot","HeadSlot","LegsSlot","MainHandSlot","NeckSlot","SecondaryHandSlot","ShoulderSlot","Trinket0Slot","Trinket1Slot","WaistSlot","WristSlot"};
+local gSlotNames = {
+    "BackSlot",
+    "ChestSlot",
+    "FeetSlot",
+    "Finger0Slot",
+    "Finger1Slot",
+    "HandsSlot",
+    "HeadSlot",
+    "LegsSlot",
+    "MainHandSlot",
+    "NeckSlot",
+    "SecondaryHandSlot",
+    "ShoulderSlot",
+    "Trinket0Slot",
+    "Trinket1Slot",
+    "WaistSlot",
+    "WristSlot"
+};
 
 local datSets = {}
-datSets["Wearing 1H/OH"] = {
-    INVTYPE_HEAD=1,
-    INVTYPE_NECK=1,
-    INVTYPE_SHOULDER=1,
-    INVTYPE_CLOAK=1,
-    INVTYPE_CHEST=1,
-    INVTYPE_WRIST=1,
-    INVTYPE_HAND=1,
-    INVTYPE_WAIST=1,
-    INVTYPE_LEGS=1,
-    INVTYPE_FEET=1,
-    INVTYPE_FINGER=2,
-    INVTYPE_TRINKET=2,
-    INVTYPE_WEAPONMAINHAND=1,
-    INVTYPE_WEAPONOFFHAND=1
+datSets["Wearing 1H"] = {
+    INVTYPE_HEAD           = 1,
+    INVTYPE_NECK           = 1,
+    INVTYPE_SHOULDER       = 1,
+    INVTYPE_CLOAK          = 1,
+    INVTYPE_CHEST          = 1,
+    INVTYPE_WRIST          = 1,
+    INVTYPE_HAND           = 1,
+    INVTYPE_WAIST          = 1,
+    INVTYPE_LEGS           = 1,
+    INVTYPE_FEET           = 1,
+    INVTYPE_FINGER         = 2,
+    INVTYPE_TRINKET        = 2,
+    INVTYPE_WEAPONMAINHAND = 1,
+    INVTYPE_WEAPONOFFHAND  = 1
 }
 datSets["Wearing 2H"] = {
-    INVTYPE_HEAD=1,
-    INVTYPE_NECK=1,
-    INVTYPE_SHOULDER=1,
-    INVTYPE_CLOAK=1,
-    INVTYPE_CHEST=1,
-    INVTYPE_WRIST=1,
-    INVTYPE_HAND=1,
-    INVTYPE_WAIST=1,
-    INVTYPE_LEGS=1,
-    INVTYPE_FEET=1,
-    INVTYPE_FINGER=2,
-    INVTYPE_TRINKET=2,
-    INVTYPE_2HWEAPON=1
+    INVTYPE_HEAD     = 1,
+    INVTYPE_NECK     = 1,
+    INVTYPE_SHOULDER = 1,
+    INVTYPE_CLOAK    = 1,
+    INVTYPE_CHEST    = 1,
+    INVTYPE_WRIST    = 1,
+    INVTYPE_HAND     = 1,
+    INVTYPE_WAIST    = 1,
+    INVTYPE_LEGS     = 1,
+    INVTYPE_FEET     = 1,
+    INVTYPE_FINGER   = 2,
+    INVTYPE_TRINKET  = 2,
+    INVTYPE_2HWEAPON = 1
 }
 
+MAX_WORST = 2
+
 interestingItemLevels = {435, 460, 470, 480, 500}
+
+gColors = {}
+gColors["ERR"]   = {255,  64,  64}
+gColors["WARN"]  = {255, 255,   0}
+gColors["DAT"]   = { 96,  96,  96}
+gColors["LINE"]  = {  0,   0, 192}
+
+gColors["AVG"]   = {192, 255, 192}
+gColors["SUM"]   = {255, 128,  64}
+gColors["RAW"]   = {255, 192,  64}
+gColors["SLOTS"] = {  0, 128, 255}
 
 gEquipSlots = {}
 gOptions = {}
@@ -52,6 +82,17 @@ function Dat_Command(msg)
         else
             goalItemLevel = n
         end
+    end
+
+    datHorizontalLine();
+
+    if gOptions['help'] or gOptions['h'] then
+        datLog("Syntax: /dat ["..c("goal ilevel",64,255,64).."] || verbose || help")
+        datLog("Examples:")
+        datLog("/dat 470")
+        datLog("/dat verbose 480")
+        datLog("/dat help")
+        return
     end
 
     local averageItemLevel, averageEquippedItemLevel = GetAverageItemLevel();
@@ -73,13 +114,11 @@ function Dat_Command(msg)
         return
     end
 
-    datLog("Average Item Level: " .. averageItemLevel)
-    datLog("Average Equipped Item Level: " .. averageEquippedItemLevel)
-    datLog("Shooting for iLevel " .. goalItemLevel)
+    datLog("Your wish: " .. ct(averageItemLevel, "AVG") .. " -> " .. ct(goalItemLevel, "AVG"))
 
     -- Traverse Equipped Items
     local lookedAtEquippedCount = 0
-    for i, slotName in ipairs(slotNames) do
+    for i, slotName in ipairs(gSlotNames) do
         local slotID = GetInventorySlotInfo(slotName)
         local itemID = GetInventoryItemID("player", slotID)
         if itemID ~= nil then
@@ -108,9 +147,9 @@ function Dat_Command(msg)
 
     local bankWarning = ""
     if(lookedAtBagCount < 7) then
-        bankWarning = " (bank not open?)"
+        datWarning("Your bank doesn't appear to be open. Data might be incorrect.", 255, 255, 0)
     end
-    datVerbose("Looked at " .. lookedAtBagCount .. " bags. " .. bankWarning)
+    datVerbose("Looked at " .. lookedAtBagCount .. " bags.")
 
     for slotName, items in pairs(gEquipSlots) do
         sort(items, datSortByItemLevel)
@@ -132,18 +171,23 @@ SlashCmdList["DAT"] = Dat_Command
 ------------------------------------------------------------------------------------------
 
 function c(t, r, g, b)
-    return format("|cff00ff00%s|r", t)
+    return format("|cff%2.2x%2.2x%2.2x%s|r", r, g, b, t)
+end
+
+function ct(t, n)
+    return format("|cff%2.2x%2.2x%2.2x%s|r", gColors[n][1], gColors[n][2], gColors[n][3], t)
 end
 
 function datCalcSet(name, set, goalItemLevel)
     local totalItems = 0
     local itemLevelSum = 0
+    local worstItems = {}
     for equipSlot, equipCount in pairs(set) do
         totalItems = totalItems + equipCount
         if gEquipSlots[equipSlot] then
             local count = getn(gEquipSlots[equipSlot])
             if count < equipCount then
-                datLog("Warning: Not enough items of type " .. equipSlot)
+                datWarning("Not enough items of type " .. equipSlot)
             end
             if count > equipCount then
                 count = equipCount
@@ -151,16 +195,43 @@ function datCalcSet(name, set, goalItemLevel)
             for i=1,equipCount do
                 item = gEquipSlots[equipSlot][i]
                 itemLevelSum = itemLevelSum + item.ilevel
-                datVerbose(name..": ["..item.equipSlot.."]: " .. item.name .. ", " .. item.ilevel)
+                tinsert(worstItems, item)
+                local count = getn(worstItems)
+                if count > 1 then
+                    for idx=count,2,-1 do
+                        if worstItems[idx].ilevel < worstItems[idx-1].ilevel then
+                            local t = worstItems[idx]
+                            worstItems[idx] = worstItems[idx - 1]
+                            worstItems[idx - 1] = t
+                        end
+                    end
+                    while getn(worstItems) > MAX_WORST do
+                        tremove(worstItems)
+                    end
+                end
+                datVerbose("* ".. item.ilevel .. " (" .. item.equipSlot .. ") " .. item.link)
             end
         else
-            datLog("Warning: Nothing to equip for slot " .. equipSlot)
+            datWarning("Nothing to equip for slot " .. equipSlot)
         end
     end
     local goalSum = goalItemLevel * totalItems
     local itemLevelAverage = itemLevelSum / totalItems
     local itemLevelsNeeded = goalSum - itemLevelSum
-    datLog(name.." ["..totalItems.." slots]: Goal Sum ["..c(goalItemLevel,255,255,0).."]: "..c(goalSum,255,255,0)..", iLevel Sum: " .. c(itemLevelSum,255,255,0) .. ", iLevel Avg: " .. c(format("%4.4f", itemLevelAverage),255,255,0) .. ", Raw iLevels Needed: " .. c(itemLevelsNeeded,255,255,0))
+    local worstItemText = ""
+    for i,v in ipairs(worstItems) do
+        if strlen(worstItemText) > 0 then
+            worstItemText = worstItemText .. ", "
+        end
+        worstItemText = worstItemText .. v.link
+    end
+
+    datLog(name..": "
+        .. ct(itemLevelSum, "SUM") .. " / " .. ct(goalSum, "SUM") .. " raw"
+        .. " / " .. ct(totalItems, "SLOTS").." slots"
+        .. " = " .. ct(format("%4.4f", itemLevelAverage), "AVG") .. " / " .. ct(goalItemLevel, "AVG") .. "."
+        .. " Raw pts needed: " .. ct(itemLevelsNeeded, "RAW") .. "."
+        .. " Worst Items: " .. worstItemText)
 end
 
 function datSortByItemLevel(a, b)
@@ -248,19 +319,29 @@ function datItemInfo(itemID, itemLink)
     if(equipSlot == "INVTYPE_HOLDABLE") then -- "HOLDABLE" is stupid
         equipSlot = "INVTYPE_WEAPONOFFHAND"
     end
-    return {name=name, ilevel=iLevel, equipSlot=equipSlot}
+    return {name=name, ilevel=iLevel, equipSlot=equipSlot, link=itemLink}
 end
 
+-------------------------------------------------------------------------------------
+
 function datLog(msg)
-    print("Dat: " .. msg)
+    print(ct("Dat: ", "DAT") .. msg)
 end
 
 function datVerbose(msg)
-    if gOptions["verbose"] then
+    if gOptions["verbose"] or gOptions["v"] then
         datLog(msg)
     end
 end
 
+function datWarning(msg)
+    print(ct("Dat Warning: " .. msg, "WARN"))
+end
+
+function datHorizontalLine()
+    print(ct("---------------------------------------------", "LINE"))
+end
+
 function datError(msg)
-    print("Dat Error: " .. msg)
+    print(ct("Dat Error: " .. msg, "ERROR"))
 end
