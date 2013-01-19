@@ -369,5 +369,5 @@ function datHorizontalLine()
 end
 
 function datError(msg)
-    print(ct("Dat Error: " .. msg, "ERROR")) -- Errors are always local
+    print(ct("Dat Error: " .. msg, "ERR")) -- Errors are always local
 end
