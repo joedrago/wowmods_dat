@@ -310,8 +310,10 @@ function GetActualItemLevel(link, baseLevel)
         ["0"]=0,["1"]=8,["373"]=4,["374"]=8,["375"]=4,["376"]=4,
         ["377"]=4,["379"]=4,["380"]=4,["445"]=0,["446"]=4,["447"]=8,
         ["451"]=0,["452"]=8,["453"]=0,["454"]=4,["455"]=8,["456"]=0,
-        ["457"]=8,["458"]=0,["459"]=4,["460"]=8,["461"]=12,["462"]=16}
+        ["457"]=8,["458"]=0,["459"]=4,["460"]=8,["461"]=12,["462"]=16,["465"]=0}
     local upgrade = link:match(":(%d+)\124h%[")
+
+    datLog("upgrade: " .. upgrade)
 
     if baseLevel and upgrade then
         return baseLevel + levelAdjust[upgrade]
@@ -322,11 +324,15 @@ end;
 
 function datItemInfo(itemID, itemLink)
     local name, _, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(itemID)
+    datVerbose(name .. " - " .. equipSlot)
     if (iLevel >= 450) then
         iLevel = GetActualItemLevel(itemLink, iLevel)
     end
     if(equipSlot == "INVTYPE_ROBE") then -- "ROBE" is stupid
         equipSlot = "INVTYPE_CHEST"
+    end
+    if(equipSlot == "INVTYPE_WEAPON") then -- "HOLDABLE" is stupid
+        equipSlot = "INVTYPE_WEAPONMAINHAND"
     end
     if(equipSlot == "INVTYPE_HOLDABLE") then -- "HOLDABLE" is stupid
         equipSlot = "INVTYPE_WEAPONOFFHAND"
