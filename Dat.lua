@@ -315,7 +315,7 @@ function GetActualItemLevel(link, baseLevel)
 
     datLog("upgrade: " .. upgrade)
 
-    if baseLevel and upgrade then
+    if baseLevel and upgrade and levelAdjust[upgrade] then
         return baseLevel + levelAdjust[upgrade]
     else
         return baseLevel
