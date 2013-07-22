@@ -241,8 +241,8 @@ function datCalcSet(name, set, goalItemLevel)
     datLog(name..": "
         .. ct(itemLevelSum, "SUM") .. " / " .. ct(goalSum, "SUM") .. " raw"
         .. " / " .. ct(totalItems, "SLOTS").." slots"
-        .. " = " .. ct(format("%4.4f", itemLevelAverage), "AVG") .. " / " .. ct(goalItemLevel, "AVG") .. "."
-        .. " Raw pts needed: " .. ct(itemLevelsNeeded, "RAW") .. "."
+        .. " = " .. ct(format("%4.4f", itemLevelAverage), "AVG") .. " / " .. ct(goalItemLevel, "AVG") .. ".")
+    datLog("   Raw pts needed: " .. ct(itemLevelsNeeded, "RAW") .. "."
         .. " Worst Items: " .. worstItemText)
 end
 
